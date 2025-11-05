@@ -30,7 +30,7 @@ class LogisticRegression:
     
     def _sigmoid(self, z):
         """
-        Compute sigmoid activation function.
+        Compute sigmoid activation function with numerical stability.
         
         Parameters:
         -----------
@@ -42,7 +42,10 @@ class LogisticRegression:
         array-like
             Sigmoid activation values.
         """
-        return 1 / (1 + np.exp(-z))
+        # Use numerically stable implementation to avoid overflow
+        return np.where(z >= 0, 
+                       1 / (1 + np.exp(-z)), 
+                       np.exp(z) / (1 + np.exp(z)))
     
     def _compute_loss(self, y_true, y_pred):
         """
@@ -93,7 +96,8 @@ class LogisticRegression:
         # Initialize weights and bias
         if self.random_state is not None:
             np.random.seed(self.random_state)
-        self.weights = np.zeros(n_features)
+        # Use small random initialization to break symmetry
+        self.weights = np.random.normal(0, 0.01, n_features)
         self.bias = 0
         
         # Gradient descent
