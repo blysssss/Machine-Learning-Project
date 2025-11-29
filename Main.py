@@ -7,31 +7,34 @@ from sklearn.linear_model import LogisticRegression
 from sklearn.metrics import confusion_matrix, accuracy_score, roc_curve, auc
 from matplotlib.colors import ListedColormap
 
-## Importation de la base de données
+#Loading dataset
 dataset = pd.read_csv('Social_Network_Ads.csv')
 
-# Vérifier l’équilibre des classes
-print("\nRépartition des classes :")
+#Check the balance of classes in the target variable (Purchased)
+print("\nClass distribution:")
 print(dataset['Purchased'].value_counts())
 
-## Préparation des variables
-# Features : Age & Estimated Salary
+# PREPARING VARIABLES
+# Predictor features : Age & Estimated Salary
 X = dataset[['Age', 'EstimatedSalary']].values
 
 # Target : Purchased (0/1)
 y = dataset['Purchased'].values
 
-## Train/Test split
+# Train/Test split
 X_train, X_test, y_train, y_test = train_test_split(
     X, y, test_size=0.25, random_state=0
 )
+#random_state=0 ensures that the division will be the same each time
 
-## Feature Scaling
+#Feature Scaling
+#Standardizing the features 
+#(the difference between fit_transform and transform is that fit_transform computes the parameters on the training set and applies them, while transform uses the already computed parameters)
 sc = StandardScaler()
 X_train = sc.fit_transform(X_train)
 X_test = sc.transform(X_test)
 
-## Logistic Regression
+#Logistic Regression
 classifier = LogisticRegression(random_state=0)
 classifier.fit(X_train, y_train)
 
@@ -40,20 +43,20 @@ y_pred = classifier.predict(X_test)
 print("\nPredictions :", y_pred)
 print("Accuracy :", accuracy_score(y_test, y_pred))
 
-## Matrice de confusion
+#Confusion matrix
 cm = confusion_matrix(y_test, y_pred)
-print("\nMatrice de confusion :\n", cm)
+print("\nConfusion Matrix :\n", cm)
 
-## Courbe ROC et AUC
-# Probabilités pour la classe 1
+#ROC and AUC curves 
+# Probabilities for class 1
 y_prob = classifier.predict_proba(X_test)[:, 1]
 
-# Calcul ROC
+#ROC Computation
 fpr, tpr, thresholds = roc_curve(y_test, y_prob)
 roc_auc = auc(fpr, tpr)
 print("\nAUC :", roc_auc)
 
-# Affichage de la courbe ROC
+# PLotting ROC curve
 plt.figure(figsize=(6,5))
 plt.plot(fpr, tpr, label=f"AUC = {roc_auc:.2f}")
 plt.plot([0, 1], [0, 1], linestyle='--')  # baseline
@@ -64,7 +67,7 @@ plt.legend()
 plt.grid(True)
 plt.show()
 
-##Train set/test
+#Train set/test
 def plot_decision_boundary(X_set, y_set, title):
     X1, X2 = np.meshgrid(
         np.arange(start=X_set[:, 0].min() - 1, stop=X_set[:, 0].max() + 1, step=0.01),
@@ -86,14 +89,14 @@ def plot_decision_boundary(X_set, y_set, title):
 plot_decision_boundary(X_train, y_train, "Logistic Regression (Training set)")
 plot_decision_boundary(X_test, y_test, "Logistic Regression (Test set)")
 
-## Coefficients du modèle (écriture de l'équation)
+#Model coefficients (writing the equation)
 b0 = classifier.intercept_[0]
 b1, b2 = classifier.coef_[0]
 
 print("\n--- Equation of Logistic Regression ---")
-print(f"Logit(p) = {b0:.4f} + {b1:.4f}*Age + {b2:.4f}*EstimatedSalary")
+print(f"Logit(p) = {b0:.4f} + {b1:.4f}*Age + {b2:.4f}*EstimatedSalary") #printing logistic regression equation
 
-## Cross Validation (détection underfitting/overfitting)
+#Cross Validation ( underfitting/overfitting detection)
 scores = cross_val_score(classifier, X_train, y_train, cv=10)
 print("\nCross-validation accuracy scores :", scores)
 print("Mean accuracy :", scores.mean())
